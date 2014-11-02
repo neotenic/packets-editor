@@ -1,0 +1,13 @@
+extends layout
+
+block content
+	h1 hello world
+	p this page is currently devoid of real copy so please wait
+
+
+block sidebar
+	each type, i in types
+		li.nav-header= type
+		each year in years[i]
+			li(class="#{"blah"}")
+				a(href="/#{type}/#{year}")= year

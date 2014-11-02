@@ -1,0 +1,51 @@
+doctype 5
+html(lang="en")
+	head
+		title protobowl packets editor
+		link(href="/bootstrap/docs/assets/css/bootstrap.css",rel="stylesheet")
+		style
+			body {
+				padding-top: 60px;
+			}
+			.sidebar-nav {
+				padding: 9px 0;
+			}
+	body
+		div.navbar.navbar-fixed-top
+			div.navbar-inner
+				div.container-fluid
+					a.brand protobowl <b>packets</b> editor
+					ul.nav
+						li.active
+							a(href="/") home
+						li
+							a(href="#") about
+						li
+							a(href="#") help
+					p.navbar-text.pull-right
+						| logged in as admin
+
+		div.container
+			div.row
+				div.span3
+					div.well.sidebar-nav
+						ul.nav.nav-list
+							block sidebar
+								li.nav-header hello
+								li.active
+									a(href="/") home
+								li
+									a(href="/") homeless
+								li
+									a(href="/") zombocom
+								li.nav-header world
+								li
+									a(href="/") war
+								li
+									a(href="/") three
+								li
+									a(href="/") strange
+								li
+									a(href="/") love
+				div.span9
+					block content
