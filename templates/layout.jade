@@ -10,42 +10,38 @@ html(lang="en")
 			.sidebar-nav {
 				padding: 9px 0;
 			}
+			.breadcrumb {
+				overflow: auto;
+			}
+
+		!= LRScript
 	body
 		div.navbar.navbar-fixed-top
 			div.navbar-inner
 				div.container-fluid
 					a.brand protobowl <b>packets</b> editor
 					ul.nav
-						li.active
+						li
 							a(href="/") home
 						li
-							a(href="#") about
+							a(href="/review") review
 						li
-							a(href="#") help
+							a(href="/new") new
 					p.navbar-text.pull-right
 						| logged in as admin
 
-		div.container
-			div.row
-				div.span3
-					div.well.sidebar-nav
-						ul.nav.nav-list
-							block sidebar
-								li.nav-header hello
-								li.active
-									a(href="/") home
-								li
-									a(href="/") homeless
-								li
-									a(href="/") zombocom
-								li.nav-header world
-								li
-									a(href="/") war
-								li
-									a(href="/") three
-								li
-									a(href="/") strange
-								li
-									a(href="/") love
-				div.span9
-					block content
+		block main
+			div.container
+				div.row
+					div.span3
+						div.well.sidebar-nav
+							ul.nav.nav-list
+								block sidebar
+									each type, i in types
+										li.nav-header= type
+										each year in years[i]
+											li(class="#{"blah"}")
+												a(href="/#{type}/#{year}")= year
+
+					div.span9
+						block content
