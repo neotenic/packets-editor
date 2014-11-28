@@ -89,7 +89,7 @@ app.use (req, res, next) ->
     res.locals.is_admin = req?.session?.email in (config.admins || [])
     next()
 
-require("express-persona")(app, { config.audience || "http://localhost:#{port}" })
+require("express-persona")(app, { audience: (config.audience || "http://localhost:#{port}") })
 
 sidebar_cache = null
 
