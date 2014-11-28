@@ -2,9 +2,14 @@
   "name": "packets",
   "version": "0.0.1",
   "dependencies": {
+    "async": "^0.2.10",
+    "coffee-script": "^1.6.2",
+    "express": "^3.0.6",
     "express-livereload": "0.0.24",
     "express-persona": "^0.1.2",
+    "jade": "^0.26.3",
     "moment": "^2.8.4",
+    "mongoose": "^3.8.18",
     "underscore": "^1.7.0"
   }
 }
