@@ -9,7 +9,7 @@ fs = require 'fs'
 app = express()
 
 livereload(app, {watchDir: 'templates'})
-config = (try JSON.parse(fs.readFileSync('config.json', 'utf8'))) || {}
+config = (try JSON.parse(fs.readFileSync('config.json', 'utf8'))) || process.env
 port = config.port || 4444
 
 db = mongoose.createConnection config.db || 'mongodb://localhost/protoquest'
@@ -60,6 +60,21 @@ report_schema = new mongoose.Schema {
 Report = db.model 'Report', report_schema
 
 
+Moderator = db.model 'Moderator', new mongoose.Schema {
+	name:             String,
+	email:            String,
+	jurisdiction:     [String],
+	added:            Date
+}
+
+ModLog = db.model 'ModLog', new mongoose.Schema {
+	name:             String,
+	date:             Date,
+	event:            String,
+	details:          String
+}
+
+
 app.set 'views', 'templates'
 app.use '/bootstrap', express.static('bootstrap')
 
@@ -67,9 +82,11 @@ app.use express.json()
 app.use express.urlencoded()
 app.use express.cookieParser()
 app.use express.session({ secret: config.secret || "protosecret" })
+app.locals.moment = require 'moment'
 
 app.use (req, res, next) ->
     res.locals.session = req.session
+    res.locals.is_admin = req?.session?.email in (config.admins || [])
     next()
 
 # audience = "http://localhost:#{port}"
@@ -103,9 +120,15 @@ reportbar = (done) ->
 		.exec (err, types) ->
 			done err, { report_types: types }
 
+must_admin = (req, res, next) ->
+	return next() if res.locals.is_admin
+	res.redirect '/not-authorized'
+
 literalize = (x) ->
 	return null if x == 'null'
 	return x
+
+app.get '/not-authorized', (req, res) -> res.end 'not authorized'
 
 app.get '/', (req, res) ->
 	async.parallel [sidebar, (cb) ->
@@ -118,13 +141,43 @@ app.get '/review', (req, res) -> res.redirect '/review/qb'
 app.get '/review/:type', (req, res) ->
 	base = { type: literalize req.params.type }
 	async.parallel [sidebar, reportbar, (cb) ->
-		Report.find(base).limit(30).exec (err, reports) ->
-			cb null, { reports }
+		Report.find(base).limit(30).exec (err, reports) -> cb null, { reports }
 	], (err, data) ->
 		res.render 'review.jade', _.extend({ review_page: true }, base, data...)
 
 app.get '/new', (req, res) ->
 	res.render 'new.jade', {}
+
+app.get '/logs', (req, res) ->
+	ModLog.find().exec (err, logs) ->
+		res.render 'logs.jade', { logs }
+
+app.get '/mods', (req, res) ->
+	Moderator.find().exec (err, mods) ->
+		res.render 'moderators.jade', { mods }
+
+app.post '/mods/create', must_admin, (req, res) ->
+	mod = new Moderator {
+		name: req.body.name,
+		email: req.body.email,
+		jurisdiction: req.body.juris.toLowerCase().split(/[,\s]+/),
+		added: new Date
+	}
+	mod.save()
+	res.redirect '/mods'
+
+app.post '/mods/edit', must_admin, (req, res) ->
+	Moderator.update({ email: req.body.email }, {
+		$set: {
+			jurisdiction: req.body.juris.toLowerCase().split(/[,\s]+/),
+			name: req.body.name
+		}
+	}).exec (err, data) ->
+		res.redirect '/mods'
+
+app.post '/mods/delete', must_admin, (req, res) ->
+	Moderator.remove({ email: req.body.email }).exec (err, data) ->
+		res.redirect '/mods'
 
 app.get "/:type", (req, res) ->
 	base = { type: req.params.type }
@@ -172,36 +225,21 @@ app.get "/:type/:year", (req, res) ->
 				difficulty: { $last: "$difficulty" }
 				tournaments: { $push: "$tournament" }
 			})
-			.exec (err, clusters) ->
-				# console.log clusters 
-				cb null, { groups: clusters }
-					
-		# Question.distinct 'tournament', base, (err, tournaments) ->
-		# 	async.map tournaments, (tournament, end) ->
-		# 		Question.findOne _.extend({ tournament }, base), end
-		# 	, (err, Question) ->
-		# 		groups = _.groupBy(_.zip(tournaments, Question), ([a,q]) -> q.difficulty)
-		# 		console.log tournaments, groups
-		# 		cb null, { tournaments, Question, groups }
+			.exec (err, clusters) -> cb null, { groups: clusters }
 	], (err, data) ->
 		res.render 'year.jade', _.extend({ main_page: true }, base, data...)
 
 app.get "/:type/:year/:tournament", (req, res) ->
 	base = { year: parseInt(req.params.year), type: req.params.type, tournament: req.params.tournament }
-
 	async.parallel [sidebar, (cb) ->
-		Question.distinct 'round', base, (err, rounds) ->
-			cb null, { rounds }
+		Question.distinct 'round', base, (err, rounds) -> cb null, { rounds }
 	], (err, data) ->
 		res.render 'tournament.jade', _.extend({ main_page: true }, base, data...)
 
 app.get "/:type/:year/:tournament/:round", (req, res) ->
 	base = { year: parseInt(req.params.year), type: req.params.type, tournament: req.params.tournament, round: req.params.round }
-	console.log base
 	async.parallel [sidebar, (cb) ->
-		Question.find base, (err, entries) ->
-			console.log err, entries
-			cb null, {entries}
+		Question.find base, (err, entries) -> cb null, {entries}
 	], (err, data) ->
 		res.render 'packet.jade', _.extend({ main_page: true }, base, data...)
 

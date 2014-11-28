@@ -4,6 +4,7 @@
   "dependencies": {
     "express-livereload": "0.0.24",
     "express-persona": "^0.1.2",
+    "moment": "^2.8.4",
     "underscore": "^1.7.0"
   }
 }

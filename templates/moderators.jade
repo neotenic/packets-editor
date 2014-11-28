@@ -1,0 +1,68 @@
+extends layout
+
+block main
+	div.container
+		h3 Moderator Listing
+
+		if !is_admin
+			table.table
+				thead
+					tr
+						th Name
+						th Added
+						th Jurisdiction
+				tbody
+					for mod in mods
+						tr
+							td= mod.name
+							td= moment(mod.added).fromNow()
+							td
+								ul
+									for r in mod.jurisdiction
+										li= r
+		else
+			table.table
+				thead
+					tr
+						th Name
+						th Email
+						th Added
+						th Jurisdiction
+						
+				tbody
+					for mod in mods
+							tr
+								form(action="/mods/edit", method="post")
+									td
+										input(type="text", value="#{mod.name}", name="name")
+									td
+										input(type="hidden", name="email", value="#{mod.email}")
+										a(href="mailto:#{mod.email}")= mod.email
+									td= moment(mod.added).fromNow()
+									td
+										textarea(name="juris")= mod.jurisdiction.join(', ')
+									td
+										button.btn(type="submit") Save
+								td
+									form(action="/mods/delete", method="post")
+										input(type="hidden", name="email", value="#{mod.email}")
+										button.btn.btn-danger(type="submit") Delete
+								
+
+			h3 Add New Moderator
+			form.form-horizontal.well(action="/mods/create", method="post")
+				div.control-group
+					label.control-label(for="inputName") Full Name
+					.controls
+						input(type="text", id="inputName", name="name", placeholder="Charles Elegans")
+				div.control-group
+					label.control-label(for="inputEmail") Email
+					.controls
+						input(type="text", id="inputEmail", name="email", placeholder="celegans@mit.edu")
+				div.control-group
+					label.control-label(for="inputPassword") Jurisdiction
+					.controls
+						textarea(rows="3", id="inputPassword", name="juris", placeholder="hsquizbowl, lobby, history")
+				div.control-group
+					.controls
+						button.btn(type="submit") Create Moderator
