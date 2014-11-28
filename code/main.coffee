@@ -87,7 +87,7 @@ app.locals.moment = require 'moment'
 
 app.use (req, res, next) ->
     res.locals.session = req.session
-    res.locals.is_admin = req?.session?.email in (config.admins || [])
+    res.locals.is_admin = req?.session?.email in ((try JSON.parse(process.env.admins) || config.admins)
     next()
 
 require("express-persona")(app, { audience: (config.audience || "http://localhost:#{port}") })
