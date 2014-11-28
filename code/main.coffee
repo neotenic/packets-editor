@@ -9,8 +9,8 @@ fs = require 'fs'
 app = express()
 
 livereload(app, {watchDir: 'templates'})
-config = (try JSON.parse(fs.readFileSync('config.json', 'utf8'))) || process.env
-port = config.port || 4444
+config = (try JSON.parse(fs.readFileSync('config.json', 'utf8'))) || process.env || {}
+port = config.port || process.env.PORT || 4444
 
 db = mongoose.createConnection config.db || 'mongodb://localhost/protoquest'
 
