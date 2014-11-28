@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "dependencies": {
     "express-livereload": "0.0.24",
+    "express-persona": "^0.1.2",
     "underscore": "^1.7.0"
   }
 }

@@ -1,0 +1,20 @@
+extends layout
+
+block content
+	h1 #{year} All Tournaments
+	h4 question type #{type} 
+	p
+		each group in groups.sort(function(a, b){return a.difficulty > b.difficulty ? 1 : -1})
+			h3 #{group.difficulty}
+			ul
+				each tournament in group.tournaments.sort()
+					li
+						a(href="/#{type}/#{year}/#{encodeURIComponent(tournament)}")= tournament
+			//- p
+			//- 	each pair in group
+			//- 		- var tournament = pair[0]
+			//- 		ul.breadcrumb
+			//- 			li= year
+			//- 				| &nbsp;
+			//- 			li= tournament
+			//- 				span.divider /	

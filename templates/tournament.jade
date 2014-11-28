@@ -1,0 +1,9 @@
+extends layout
+
+block content
+	h1 #{year} #{tournament}
+	h4 question type #{type} 
+	p
+		each round in rounds
+			li
+				a(href="/#{type}/#{year}/#{encodeURIComponent(tournament)}/#{encodeURIComponent(round)}")= round

@@ -2,7 +2,8 @@ doctype 5
 html(lang="en")
 	head
 		title protobowl packets editor
-		link(href="/bootstrap/docs/assets/css/bootstrap.css",rel="stylesheet")
+		link(href="/bootstrap/css/bootstrap.css",rel="stylesheet")
+		link(href="/bootstrap/breadcrumb.css",rel="stylesheet")
 		style
 			body {
 				padding-top: 60px;
@@ -10,25 +11,36 @@ html(lang="en")
 			.sidebar-nav {
 				padding: 9px 0;
 			}
-			.breadcrumb {
-				overflow: auto;
-			}
+
 
 		!= LRScript
+
 	body
-		div.navbar.navbar-fixed-top
+
+		script
+			email = !{JSON.stringify(session.email)}
+
+		div.navbar.navbar-fixed-top.navbar-inverse
 			div.navbar-inner
 				div.container-fluid
-					a.brand protobowl <b>packets</b> editor
+					a(href="/").brand protobowl <b>packets</b> editor
 					ul.nav
-						li
+						li(class="#{typeof main_page != 'undefined' && 'active'}")
 							a(href="/") home
-						li
+						li(class="#{typeof review_page != 'undefined' && 'active'}")
 							a(href="/review") review
 						li
 							a(href="/new") new
-					p.navbar-text.pull-right
-						| logged in as admin
+					
+					ul.nav.pull-right
+						
+						if session.email
+							li.navbar-text #{session.email}
+							li
+								a#logout(href="/") Log Out
+						li
+							a#login(href="/", style="display:none") Log In
+							
 
 		block main
 			div.container
@@ -37,11 +49,19 @@ html(lang="en")
 						div.well.sidebar-nav
 							ul.nav.nav-list
 								block sidebar
-									each type, i in types
-										li.nav-header= type
-										each year in years[i]
-											li(class="#{"blah"}")
-												a(href="/#{type}/#{year}")= year
+									each t in Object.keys(types).sort(function(b, a){return types[a].length - types[b].length})
+										- var years = types[t]
+										li.nav-header=t
+											a.pull-right(href="/#{t}") &rarr;
+										each y in years.sort().reverse()
+											li(class="#{typeof year != "undefined" && year == y && typeof type != "undefined" && type == t? 'active' : ''}")
+												a(href="/#{t}/#{y}")= y
+						form(action="/reload-sidebar",method="post")
+							button(type="submit").btn Reload Sidebar Cache
 
 					div.span9
 						block content
+
+
+		script(src="https://login.persona.org/include.js")
+		script(src="/bootstrap/persona.js")

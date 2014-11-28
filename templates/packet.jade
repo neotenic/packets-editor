@@ -1,0 +1,16 @@
+extends layout
+
+block content
+	h1 #{round}
+	h4 #{year} #{tournament} (#{type})
+	p
+		each question, num in entries
+			ul.breadcrumb
+				li
+					//- span.label= question.num
+					li= question.num
+						span.divider /	
+					| &nbsp;
+				li= question.category
+				li.pull-right= question.answer
+			div.well= question.question

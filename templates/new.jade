@@ -1,0 +1,24 @@
+extends layout
+
+block main
+	style
+		.pastebox {
+			min-height: 500px;
+		}
+	div.container-fluid
+		div.row-fluid
+			div.span5
+				.well.pastebox(contentEditable="true")
+					h1 paste the packet here
+					p this is just a bunch of useless placeholder text
+					p the illuminati are here
+
+			div.span7
+				form.form-horizontal
+					fieldset
+						legend novus mundo ordo 
+						.control-group
+							label.control-label(for="input01") Text input
+							.controls
+								input.input-xlarge(id="input01",type="text")
+								p.help-block Supporting help text

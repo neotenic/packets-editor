@@ -1,0 +1,23 @@
+extends layout
+
+block main
+	div.container
+		ul.nav.nav-tabs
+			for t in report_types
+				li(class="#{t.type == type ? 'active' : ''}")
+					a(href="/review/#{t.type}")= t.type || 'Unknown'
+						| 
+						span.badge= t.count
+
+		for report in reports
+			ul.breadcrumb
+				li
+					//- span.label= question.num
+					li= report.num
+						span.divider /	
+					| &nbsp;
+				li= report.category
+				li.pull-right= report.answer
+			div.well= report.question
+
+

@@ -1,0 +1,18 @@
+extends layout
+
+block content
+	h1 All Tournaments
+	h4 question type #{type} 
+	hr
+	for d in clusters
+		h2= d.difficulty
+		p
+		for t in d.tournaments
+			div(style="overflow:auto; margin-bottom: 20px")
+				.pull-right
+					ul
+						for y in t.years
+							li
+								a(href="/#{type}/#{y}/#{encodeURIComponent(t.name)}")= y
+
+				span(style="font-size: large")= t.name
