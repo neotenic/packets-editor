@@ -1,6 +1,7 @@
 {
   "name": "packets",
   "version": "0.0.1",
+  "description": "Protobowl packets",
   "dependencies": {
     "async": "^0.2.10",
     "coffee-script": "^1.6.2",
@@ -11,5 +12,12 @@
     "moment": "^2.8.4",
     "mongoose": "^3.8.18",
     "underscore": "^1.7.0"
+  },
+  "engines": {
+    "node": "0.10.x"
+  },
+  "main": "web.js",
+  "scripts": {
+    "start": "node web.js"
   }
 }
