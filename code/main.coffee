@@ -87,7 +87,7 @@ app.locals.moment = require 'moment'
 
 app.use (req, res, next) ->
     res.locals.session = req.session
-    res.locals.is_admin = req?.session?.email in ((try JSON.parse(process.env.admins)) || config.admins)
+    res.locals.is_admin = req?.session?.email in ((try JSON.parse(process.env.admins)) || config.admins || [])
     next()
 
 require("express-persona")(app, { audience: (config.audience || "http://localhost:#{port}") })
@@ -99,6 +99,23 @@ sidebar = (done) ->
 		done null, {types: sidebar_cache}
 	else
 		reload_sidebar done
+
+qsidebar = (done) ->
+	Question.aggregate()
+		.group({
+			_id: {type: "$type", category: "$category"},
+			type: { $last: "$type" },
+			category: { $last: "$category" },
+			count: { $sum: 1 }
+		})
+		.group({
+			_id: "$type",
+			type: {$last: "$type"},
+			category: { $push: "$category" },
+			count: { $sum: "$count" }
+		})
+		.exec (err, clusters) ->
+			done err, { qtypes: clusters }
 
 reload_sidebar = (done) ->
 	Question.distinct 'type', (err, types) ->
@@ -177,7 +194,26 @@ app.post '/mods/delete', must_admin, (req, res) ->
 	Moderator.remove({ email: req.body.email }).exec (err, data) ->
 		res.redirect '/mods'
 
-app.get "/:type", (req, res) ->
+app.get '/questions', (req, res) ->
+	async.parallel [qsidebar, (cb) ->
+		cb null, { hello: 42 }
+	], (err, data) ->
+		res.render 'questions.jade', _.extend({ }, data...)
+
+
+app.get '/questions/:type/:category', (req, res) ->
+	async.parallel [qsidebar, (cb) ->
+		Question.find({
+			type: req.params.type,
+			category: req.params.category
+		})
+		.limit(10)
+		.exec (err, entries) -> cb null, {entries}
+	], (err, data) ->
+		res.render 'category.jade', _.extend({ type: req.params.type, cat: req.params.category }, data...)
+
+
+app.get "/packets/:type", (req, res) ->
 	base = { type: req.params.type }
 	async.parallel [sidebar, (cb) ->
 		Question.aggregate( $match: base )
@@ -206,9 +242,9 @@ app.get "/:type", (req, res) ->
 		# Question.distinct 'tournament', base, (err, tournaments) ->
 		# 	cb err, {tournaments}
 	], (err, data) ->
-		res.render 'tournaments.jade', _.extend({ main_page: true }, base, data...)
+		res.render 'packets/tournaments.jade', _.extend({ main_page: true }, base, data...)
 
-app.get "/:type/:year", (req, res) ->
+app.get "/packets/:type/:year", (req, res) ->
 	base = { year: parseInt(req.params.year), type: req.params.type }
 
 	async.parallel [sidebar, (cb) ->
@@ -225,21 +261,21 @@ app.get "/:type/:year", (req, res) ->
 			})
 			.exec (err, clusters) -> cb null, { groups: clusters }
 	], (err, data) ->
-		res.render 'year.jade', _.extend({ main_page: true }, base, data...)
+		res.render 'packets/year.jade', _.extend({ main_page: true }, base, data...)
 
-app.get "/:type/:year/:tournament", (req, res) ->
+app.get "/packets/:type/:year/:tournament", (req, res) ->
 	base = { year: parseInt(req.params.year), type: req.params.type, tournament: req.params.tournament }
 	async.parallel [sidebar, (cb) ->
 		Question.distinct 'round', base, (err, rounds) -> cb null, { rounds }
 	], (err, data) ->
-		res.render 'tournament.jade', _.extend({ main_page: true }, base, data...)
+		res.render 'packets/tournament.jade', _.extend({ main_page: true }, base, data...)
 
-app.get "/:type/:year/:tournament/:round", (req, res) ->
+app.get "/packets/:type/:year/:tournament/:round", (req, res) ->
 	base = { year: parseInt(req.params.year), type: req.params.type, tournament: req.params.tournament, round: req.params.round }
 	async.parallel [sidebar, (cb) ->
 		Question.find base, (err, entries) -> cb null, {entries}
 	], (err, data) ->
-		res.render 'packet.jade', _.extend({ main_page: true }, base, data...)
+		res.render 'packets/packet.jade', _.extend({ main_page: true }, base, data...)
 
 app.post "/reload-sidebar", (req, res) ->
 	reload_sidebar ->

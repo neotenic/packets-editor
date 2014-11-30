@@ -1,4 +1,4 @@
-extends layout
+extends ../layout
 
 block content
 	h1 #{year} All Tournaments
@@ -9,7 +9,7 @@ block content
 			ul
 				each tournament in group.tournaments.sort()
 					li
-						a(href="/#{type}/#{year}/#{encodeURIComponent(tournament)}")= tournament
+						a(href="/packets/#{type}/#{year}/#{encodeURIComponent(tournament)}")= tournament
 			//- p
 			//- 	each pair in group
 			//- 		- var tournament = pair[0]

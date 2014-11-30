@@ -26,9 +26,12 @@ html(lang="en")
 					a(href="/").brand protobowl <b>packets</b> editor
 					ul.nav
 						li(class="#{typeof main_page != 'undefined' && 'active'}")
-							a(href="/") home
+							a(href="/") packets
+						li(class="#{typeof qtypes != 'undefined' && 'active'}")
+							a(href="/questions") questions
 						li(class="#{typeof review_page != 'undefined' && 'active'}")
 							a(href="/review") reports
+						
 						//- li
 						//- 	a(href="/new") new
 						li
@@ -50,18 +53,18 @@ html(lang="en")
 			div.container
 				div.row
 					div.span3
-						div.well.sidebar-nav
-							ul.nav.nav-list
-								block sidebar
-									each t in Object.keys(types).sort(function(b, a){return types[a].length - types[b].length})
-										- var years = types[t]
-										li.nav-header=t
-											a.pull-right(href="/#{t}") &rarr;
-										each y in years.sort().reverse()
-											li(class="#{typeof year != "undefined" && year == y && typeof type != "undefined" && type == t? 'active' : ''}")
-												a(href="/#{t}/#{y}")= y
-						form(action="/reload-sidebar",method="post")
-							button(type="submit").btn Reload Sidebar Cache
+						block sidebar
+							div.well.sidebar-nav
+								ul.nav.nav-list
+										each t in Object.keys(types).sort(function(b, a){return types[a].length - types[b].length})
+											- var years = types[t]
+											li.nav-header=t
+												a.pull-right(href="/packets/#{t}") &rarr;
+											each y in years.sort().reverse()
+												li(class="#{typeof year != "undefined" && year == y && typeof type != "undefined" && type == t? 'active' : ''}")
+													a(href="/packets/#{t}/#{y}")= y
+							form(action="/reload-sidebar",method="post")
+								button(type="submit").btn Reload Sidebar Cache
 
 					div.span9
 						block content

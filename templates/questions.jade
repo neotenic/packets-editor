@@ -1,0 +1,17 @@
+extends layout
+
+block sidebar
+	div.well.sidebar-nav
+		ul.nav.nav-list
+			each t in Object.keys(qtypes).sort(function(b, a){return qtypes[a].count - qtypes[b].count})
+				- var ty = qtypes[t]
+				li.nav-header= ty.type + " (" + ty.count + ")"
+
+				//- li(class="#{typeof year != "undefined" && year == y && typeof type != "undefined" && type == t? 'active' : ''}")
+				//- 	a(href="#") All
+				
+				each y in ty.category.sort().reverse()
+					li(class="#{typeof cat != "undefined" && cat == y && typeof type != "undefined" && type == ty.type ? 'active' : ''}")
+						a(href="/questions/#{ty.type}/#{y}")= y
+
+		

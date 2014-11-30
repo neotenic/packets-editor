@@ -1,4 +1,4 @@
-extends layout
+extends ../layout
 
 block content
 	h1 All Tournaments
@@ -13,6 +13,6 @@ block content
 					ul
 						for y in t.years
 							li
-								a(href="/#{type}/#{y}/#{encodeURIComponent(t.name)}")= y
+								a(href="/packets/#{type}/#{y}/#{encodeURIComponent(t.name)}")= y
 
 				span(style="font-size: large")= t.name

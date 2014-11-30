@@ -1,0 +1,16 @@
+extend questions
+
+block content
+	h1= cat
+	h3= type
+	for question in entries
+
+		ul.breadcrumb
+			li
+				//- span.label= question.num
+				li= question.num
+					span.divider /	
+				| &nbsp;
+			li= question.category
+			li.pull-right= question.answer
+		div.well= question.question
