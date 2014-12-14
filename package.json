@@ -7,7 +7,7 @@
     "coffee-script": "^1.6.2",
     "express": "^3.0.6",
     "express-livereload": "0.0.24",
-    "express-persona": "^0.1.2",
+    "express-persona": "git://github.com/neotenic/express-persona",
     "jade": "^0.26.3",
     "moment": "^2.8.4",
     "mongoose": "^3.8.18",

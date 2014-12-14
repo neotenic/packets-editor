@@ -27,7 +27,8 @@ navigator.id.watch({
     }, false);
 
     xhr.send(JSON.stringify({
-      assertion: assertion
+      assertion: assertion,
+      audience: location.protocol+'//'+location.host
     }));
 
   },

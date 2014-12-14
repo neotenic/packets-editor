@@ -9,8 +9,10 @@ fs = require 'fs'
 app = express()
 
 livereload(app, {watchDir: 'templates'})
-# config = (try JSON.parse(fs.readFileSync('config.json', 'utf8'))) || process.env || {}
-config = process.env
+if process.env.NODE_ENV == 'production'
+	config = process.env
+else
+	config = (try JSON.parse(fs.readFileSync('config.json', 'utf8'))) || process.env || {}
 port = config.port || process.env.PORT || 4444
 
 db = mongoose.createConnection config.db || 'mongodb://localhost/protoquest'
@@ -90,11 +92,11 @@ app.use (req, res, next) ->
     res.locals.is_admin = req?.session?.email in ((try JSON.parse(process.env.admins)) || config.admins || [])
     next()
 
-require("./express-persona")(app, { audience: [
+require("express-persona")(app, { audience: [
 	"http://localhost:#{port}", 
-	"http://packets.herokuapp.com/", 
-	"http://packets.protobowl.com/"
-]) })
+	"http://packets.herokuapp.com", 
+	"http://packets.protobowl.com"
+] })
 
 sidebar_cache = null
 
