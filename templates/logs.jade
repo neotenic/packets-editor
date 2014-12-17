@@ -1,7 +1,35 @@
 extends layout
 
 block main
-	div.container
-		h3 Logs
+	div.container		
+		//- h2 loggy azalea
+		table.table
+			thead
+				tr
+					th Name
+					th Room
+					th Date
+					th Event
+					th Details
+			tbody
+				for log in logs
+					tr
+						td
+							if log.uid
+								a(href="/logs/user/#{log.uid}")= log.name
+								|  (
+								span= log.uid.slice(0, 5)
+								| )
+							else
+								span= log.name
 
-		
+						td
+							if session.email
+								a(href="/logs/room/#{log.room}")= log.room
+							else
+								span= censor_room(log.room)
+						td(title="#{log.date}")= moment(log.date).fromNow()
+						td
+							a.label(href="/logs/event/#{log.event}")= log.event
+						td= log.details
+		//- tiny little shoutout to the mit logs

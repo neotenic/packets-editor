@@ -34,17 +34,19 @@ html(lang="en")
 						
 						//- li
 						//- 	a(href="/new") new
-						li
-							a(href="/mods") mods
-						li
+						li(class="#{typeof logs != 'undefined' && 'active'}")
 							a(href="/logs") logs
+						if session.email
+							
+							li(class="#{typeof mods != 'undefined' && 'active'}")
+								a(href="/mods") mods
 					
 					ul.nav.pull-right
-						
 						if session.email
 							li.navbar-text #{session.email}
 							li
 								a#logout(href="/") Log Out
+
 						li
 							a#login(href="/", style="display:none") Log In
 							

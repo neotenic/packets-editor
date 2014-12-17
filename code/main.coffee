@@ -21,6 +21,7 @@ db = mongoose.createConnection config.db || 'mongodb://localhost/protoquest'
 db.on 'error', (err) -> console.log 'Database Error', err
 db.on 'open', (err) -> console.log 'opened database'
 
+public_room_list = ['lobby', 'hsquizbowl', 'msquizbowl', 'science', 'literature', 'history', 'trash', 'art', 'philosophy', 'college']
 
 question_schema = new mongoose.Schema {
 	type:             String, # for future support for different types of Question, e.g. certamen, jeopardy
@@ -72,10 +73,13 @@ Moderator = db.model 'Moderator', new mongoose.Schema {
 
 ModLog = db.model 'ModLog', new mongoose.Schema {
 	name:             String,
+	uid:              String,
 	date:             Date,
 	event:            String,
+	room:             String,
 	details:          String
 }
+
 
 
 app.set 'views', 'templates'
@@ -86,6 +90,14 @@ app.use express.urlencoded()
 app.use express.cookieParser()
 app.use express.session({ secret: config.secret || "protosecret" })
 app.locals.moment = require 'moment'
+app.locals.censor_room = (name) ->
+	return name if name in public_room_list
+	if name?.length < 4
+		return "..."
+	else
+		return name?.slice(0, 2) + "..." + name?.slice(-2)
+
+
 
 app.use (req, res, next) ->
     res.locals.session = req.session
@@ -170,7 +182,28 @@ app.get '/new', (req, res) ->
 	res.render 'new.jade', {}
 
 app.get '/logs', (req, res) ->
-	ModLog.find().exec (err, logs) ->
+	ModLog.find().sort(date: -1).exec (err, logs) ->
+		res.render 'logs.jade', { logs }
+
+app.get '/logs/room/:room', (req, res) ->
+	ModLog.find(room: req.params.room).sort(date: -1).exec (err, logs) ->
+		res.render 'logs.jade', { logs }
+
+app.get '/logs/event/:event', (req, res) ->
+	ModLog.find(event: req.params.event).sort(date: -1).exec (err, logs) ->
+		res.render 'logs.jade', { logs }
+
+app.get '/logs/user/:uid', (req, res) ->
+	# log = new ModLog {
+	# 	name: 'name shit',
+	# 	uid: 'wumbo',
+	# 	date: new Date
+	# 	room: 'merps'
+	# 	event: 'this shit is fucked up dude'
+	# 	details: 'i wanna get out'
+	# }
+	# log.save()
+	ModLog.find(uid: req.params.uid).sort(date: -1).exec (err, logs) ->
 		res.render 'logs.jade', { logs }
 
 app.get '/mods', (req, res) ->
