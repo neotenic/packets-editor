@@ -80,6 +80,17 @@ ModLog = db.model 'ModLog', new mongoose.Schema {
 	details:          String
 }
 
+Tournament = db.model 'Tournament', new mongoose.Schema {
+	difficulty:       String,
+	year:             Number,
+	source:           String,
+	owner:            String,
+	season:           String,
+	links:            [String],
+	files:            [String],
+	name:             String
+}
+
 
 
 app.set 'views', 'templates'
@@ -160,6 +171,8 @@ must_admin = (req, res, next) ->
 literalize = (x) ->
 	return null if x == 'null'
 	return x
+
+
 
 app.get '/not-authorized', (req, res) -> res.end 'not authorized'
 
@@ -315,6 +328,86 @@ app.get "/packets/:type/:year/:tournament/:round", (req, res) ->
 		Question.find base, (err, entries) -> cb null, {entries}
 	], (err, data) ->
 		res.render 'packets/packet.jade', _.extend({ main_page: true }, base, data...)
+
+app.get "/tournaments", (req, res) ->
+	base = {}
+	async.parallel [sidebar], (err, data) ->
+		res.render 'tournaments/main.jade', _.extend({}, base, data...)
+
+app.get "/tournaments/import_quizbowlpackets", (req, res) ->
+	cheerio = require 'cheerio'
+	util = require 'util'
+	request = require 'request'
+
+	res.writeHead 200, {
+		'Content-Type': 'text/plain'
+		'Transfer-Encoding': 'chunked'
+	}
+
+	log = (text...) -> 
+		res.write text.map((x) ->
+			return x if typeof x is 'string'
+			return util.inspect x
+		).join(' ') + '\n'
+
+	log 'downloading packets from quizbowlpackets.com'
+
+	res.write ' ' for i in [1..1000]
+
+	get_tournaments = (sub = "www", cb) ->
+		path = "http://#{sub}.quizbowlpackets.com/"
+		log 'loading tournaments from', path
+		request path, (err, res, body) ->
+			$ = cheerio.load(body)
+			tournaments = for e in $('.MainColumn ul>li>span.Name>a').get()
+				{ href: path + $(e).attr('href'), name: $(e).text() }
+			cb? null, tournaments
+
+	tournament_info = (path, cb) ->
+		request path, (err, res, body) ->
+			$ = cheerio.load(body)
+			name = $('.MainColumn .First h2').text().trim()
+			links = ($(e).attr('href') for e in $('#ActionBox a').get())
+			fields = _.object (for field in $('.MainColumn p>span.FieldName').get()
+				[ $(field).text().replace(':', '').trim(), $(field).parent().text().replace($(field).text(), '').trim() ])
+
+			files = for link in $('ul.FileList>li>a').get()
+				{ href: $(link).attr('href'), name: $(link).text() }
+
+			owner = $('.PermissionsInformation').text()
+
+			log path, { name, level: fields['Target level'], season: fields['Season primarily used'] }
+			cb? { name, fields, files, links, owner }
+
+
+	cached_lookup = (path, cb) ->
+		path = path.replace /\w+\.quizbowlpackets\.com/g, 'www.quizbowlpackets.com'
+		Tournament.count { source: path }, (err, count) ->
+			return cb?() if count > 0
+			tournament_info path, ({name, fields, files, links, owner}) ->
+				year = name.match(/^\d{4}/) || fields['Season primarily used']?.split('-')?[0]
+				t = new Tournament {
+					source: path
+					difficulty: fields['Target level']
+					season: fields['Season primarily used']
+					year: (if year then parseInt(year) else null)
+					links
+					name
+					owner
+					files
+				}
+				t.save cb
+
+	async.map ['collegiate', 'www', 'ms', 'trash'], get_tournaments, (err, data) ->
+		tournament_paths = _.shuffle(_.pluck(_.flatten(data), 'href'))
+		log 'total tournament paths', tournament_paths.length
+		async.eachLimit tournament_paths, 1, cached_lookup, (err) ->
+			if err
+				log 'error exploring tournaments', err
+			else
+				log 'done with exploring tournaments'
+			res.end()
+
 
 app.post "/reload-sidebar", (req, res) ->
 	reload_sidebar ->

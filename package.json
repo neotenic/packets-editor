@@ -4,6 +4,7 @@
   "description": "Protobowl packets",
   "dependencies": {
     "async": "^0.2.10",
+    "cheerio": "^0.18.0",
     "coffee-script": "^1.6.2",
     "express": "^3.0.6",
     "express-livereload": "0.0.24",
@@ -11,6 +12,7 @@
     "jade": "^0.26.3",
     "moment": "^2.8.4",
     "mongoose": "^3.8.18",
+    "request": "^2.51.0",
     "underscore": "^1.7.0"
   },
   "engines": {
