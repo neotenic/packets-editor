@@ -2,7 +2,9 @@ extends ../layout
 
 block content
 	h1 #{round}
-	h4 #{year} #{tournament} (#{type})
+	h4 #{year} #{tournament} 
+		span.label.label-important #{type}
+	a.btn(href="/new?type=#{type}&year=#{year}&tournament=#{tournament}") Add New Packet
 	p
 		each question, num in entries
 			ul.breadcrumb

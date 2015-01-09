@@ -192,7 +192,15 @@ app.get '/review/:type', (req, res) ->
 		res.render 'review.jade', _.extend({ review_page: true }, base, data...)
 
 app.get '/new', (req, res) ->
-	res.render 'new.jade', {}
+	base = {
+		default_type: req.query.type,
+		default_year: req.query.year,
+		default_tournament: req.query.tournament
+	}
+	async.parallel [
+		(cb) -> Question.distinct 'type', (err, types) -> cb null, { types }
+	], (err, data) ->
+		res.render 'new.jade', _.extend({ new_page: true }, base, data...)
 
 app.get '/logs', (req, res) ->
 	ModLog.find().sort(date: -1).exec (err, logs) ->
