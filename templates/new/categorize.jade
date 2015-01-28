@@ -1,0 +1,67 @@
+extends ../layout
+
+block main
+	style
+		.pastebox {
+			min-height: 400px;
+			-webkit-box-sizing: border-box;
+			-moz-box-sizing: border-box;
+			box-sizing: border-box;
+			width: 100%;
+			resize: vertical; 
+			white-space:pre;
+			font-size: larger;
+			line-height: 1.5
+		}
+		.well-read {
+			background-color: rgba(255, 0, 0, 0.1);
+		}
+		.well-bonus {
+			background-color: rgba(255, 122, 0, 0.1);
+		}
+		#mirror {
+			position: absolute;
+			left: -10000px;
+		}
+
+		.question {
+			padding: 5px;
+			border-left: 5px solid rgb(223, 223, 223);
+			padding-left: 15px;
+			float: left;
+			width: 70%;
+		}
+		.header {
+			float: left;
+			width: 20%;
+			margin-top: 10px;
+		}
+		.thing {
+			overflow-y: auto;
+		}
+		.answer {
+			font-weight: bold;
+		}
+
+	div.container
+		div.row
+			
+			div.span12
+				h1 Step 2
+				h4 Categorize & Confirm
+
+				for q in questions
+					ol.breadcrumb
+						li Question #{q.num}
+						li.pull-right.answer= q.answer
+					.well= q.question
+
+				//- label Category
+				select
+					for o in categories
+						option(value=o)= o
+
+				hr
+				form.form(action="/categorize-packet", method="post")
+					input#json(type="hidden", name="json")
+					button.btn.btn-large <b>Submit</b> for review

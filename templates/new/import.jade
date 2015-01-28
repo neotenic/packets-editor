@@ -1,0 +1,125 @@
+extends ../layout
+
+block main
+	script(src="/bootstrap/jquery.js")
+	script(src="/bootstrap/elastic.js")
+	style
+		.pastebox {
+			min-height: 400px;
+			-webkit-box-sizing: border-box;
+			-moz-box-sizing: border-box;
+			box-sizing: border-box;
+			width: 100%;
+			resize: vertical; 
+			white-space:pre;
+			font-size: larger;
+			line-height: 1.5
+		}
+		.well-read {
+			background-color: rgba(255, 0, 0, 0.1);
+		}
+		.well-bonus {
+			background-color: rgba(255, 122, 0, 0.1);
+		}
+		#mirror {
+			position: absolute;
+			left: -10000px;
+		}
+
+		.question {
+			padding: 5px;
+			border-left: 5px solid rgb(223, 223, 223);
+			padding-left: 15px;
+			float: left;
+			width: 70%;
+		}
+		.header {
+			float: left;
+			width: 20%;
+			margin-top: 10px;
+		}
+		.thing {
+			overflow-y: auto;
+		}
+		.answer {
+			font-weight: bold;
+		}
+
+	script(src="/bootstrap/new.js")
+	div.container-fluid
+		div.row-fluid
+			
+			div.span5
+				h1 Step 1
+				form.form-horizontal
+					fieldset
+						legend Import New Packet
+						.control-group
+							label.control-label(for="question_type") Question Type
+							.controls
+								select.input-xlarge#question_type
+
+									each type in types
+										option(selected=type==default_type)= type
+								p.help-block 
+									| The question type which this packet belongs to.
+									| If you would like a new question type to be added,
+									| please email 
+									| <a href="mailto:info@protobowl.com">info@protobowl.com</a>
+						.control-group
+							label.control-label(for="packet_year") Packet Year
+							.controls
+								select.input-xlarge#packet_year
+									- var year = 2000
+									- var current_year = (new Date).getFullYear()
+									- default_year = default_year || current_year
+									while year++ < current_year
+										option(selected=year==default_year)= year
+								p.help-block 
+									| The year the packet was used or created.
+
+						.control-group
+							label.control-label(for="tournament_name") Tournament Name
+							.controls
+								input.input-xlarge#tournament_name(type="text", placeholder="PB Regional MS Tournament", value=default_tournament)
+								p.help-block 
+									| Please use the canonical tournament name
+									| for existing entries in the database if
+									| one already exists.
+						.control-group
+							label.control-label(for="packet_name") Packet Name
+							.controls
+								input.input-xlarge#packet_name(type="text", placeholder="2015-rogers02.pdf")
+								p.help-block 
+									| This is usually just the file name of the
+									| packet you are converting this from
+
+				div.well.pastebox#mirror
+					span
+				textarea.well.pastebox#paste
+					| This website is currently funded by the creator's friend's dad's credit card, because that friend once lost a bet. The site is notorious for its tendency to crash and lag in spite of a set of 3 fallback servers, with codenames "ninja", "taxi" and "dinosawr". The name is supposedly a portmanteau contraction of sorts for "Prototype Quizbowl Application", but is actually an acronym for its underlying conspiratorial mission. 
+					| {Promoting Racism Online To Obstruct Better Organized World Leadership} [accept {Protobowl}]
+			div.span7
+				div(style="padding: 100px; font-size: 16px")
+					p 
+						| To upload a packet to the database, paste the contents of the packet into the textbox 
+						| on the left and edit the contents such that the preview on the right is correct. 
+					p
+						| All packets are manually reviewed before incorporated into the database.
+					p
+						| Questions are separated by at least <b>two empty lines</b>.
+					p 
+						| The <b>last line</b> of any question should be the expected answer. 
+					p
+						| Remove all bonus questions as they are not yet supported.
+					br
+
+					form.form-horizontal(action="/categorize-packet", method="post")
+						input#json(type="hidden", name="json")
+						fieldset
+							.control-group
+								.controls
+									button.btn.btn-large <b>Continue</b> to Step 2
+
+
+				div#preview(style="top: 0; position: relative")

@@ -8,7 +8,7 @@ fs = require 'fs'
 
 app = express()
 
-livereload(app, {watchDir: 'templates'})
+livereload(app, {watchDir: 'templates', port: 35723})
 if process.env.NODE_ENV == 'production'
 	config = process.env
 else
@@ -101,6 +101,8 @@ app.use express.urlencoded()
 app.use express.cookieParser()
 app.use express.session({ secret: config.secret || "protosecret" })
 app.locals.moment = require 'moment'
+app.locals.querystring = require 'querystring'
+app.locals._ = _
 app.locals.censor_room = (name) ->
 	return name if name in public_room_list
 	if name?.length < 4
@@ -168,6 +170,10 @@ must_admin = (req, res, next) ->
 	return next() if res.locals.is_admin
 	res.redirect '/not-authorized'
 
+must_login = (req, res, next) ->
+	return next() if req?.session?.email
+	res.redirect '/not-authorized'
+
 literalize = (x) ->
 	return null if x == 'null'
 	return x
@@ -200,7 +206,50 @@ app.get '/new', (req, res) ->
 	async.parallel [
 		(cb) -> Question.distinct 'type', (err, types) -> cb null, { types }
 	], (err, data) ->
-		res.render 'new.jade', _.extend({ new_page: true }, base, data...)
+		res.render 'new/import.jade', _.extend({ new_page: true }, base, data...)
+
+app.post '/categorize-packet', must_login, (req, res) ->
+	{tournament, type, year, questions, packet} = JSON.parse(req.body.json)
+	base = { tournament, type, year, questions, packet }
+	async.parallel [
+		(cb) -> Question.distinct 'category', { type }, (err, categories) -> cb null, { categories }
+	], (err, data) ->
+		res.render 'new/categorize.jade', _.extend({ cat_page: true }, base, data...)
+	# 	type:             String, # for future support for different types of Question, e.g. certamen, jeopardy
+	# category:         String,
+	# num:              Number,
+	# tournament:       String,
+	# question:         String,
+	# answer:           String,
+	# difficulty:       String,
+	# value:            String,
+	# date:             String,
+	# year:             Number,
+	# round:            String,
+	# seen:             Number, 
+	# next:             mongoose.Schema.ObjectId,
+	# fixed:            Number,
+	# inc_random:       Number,
+	# tags:             [String]
+	# req.
+
+	# 
+	# for q in questions
+	# 	question = new Question {
+	# 		type,
+	# 		c
+	# 	}
+	# # Moderator.remove({ email: req.body.email }).exec (err, data) ->
+	# # 	res.redirect '/mods'
+	# mod = new Moderator {
+	# 	name: req.body.name,
+	# 	email: req.body.email,
+	# 	jurisdiction: req.body.juris.toLowerCase().split(/[,\s]+/),
+	# 	added: new Date
+	# }
+	# mod.save()
+	# res.redirect '/mods'
+
 
 app.get '/logs', (req, res) ->
 	ModLog.find().sort(date: -1).exec (err, logs) ->
@@ -258,7 +307,31 @@ app.get '/questions', (req, res) ->
 	async.parallel [qsidebar, (cb) ->
 		cb null, { hello: 42 }
 	], (err, data) ->
-		res.render 'questions.jade', _.extend({ }, data...)
+		res.render 'search/questions.jade', _.extend({ }, data...)
+
+app.get '/search', (req, res) ->
+	crit = {}
+	if req.query.q
+		crit.question = { $regex: req.query.q, $options: 'i'}
+	crit.type = req.query.type if req.query.type
+	crit.year = req.query.year if req.query.year
+	crit.tournament = req.query.tournament if req.query.tournament
+	crit.category = req.query.category if req.query.category
+	crit.difficulty = req.query.difficulty if req.query.difficulty
+	# crit = { type: req.query.type, year: req.query.year, tournament: req.query.tournament, category: req.query.category }
+
+	async.parallel [
+		((cb) -> Question.find(crit).limit(20).exec (err, entries) -> cb null, { entries }),
+		((cb) -> Question.count crit, (err, count) -> cb null, { count }),
+		((cb) -> Question.distinct 'category', crit, (err, categories) -> cb null, { categories }),
+		((cb) -> Question.distinct 'difficulty', crit, (err, difficulties) -> cb null, { difficulties }),
+		((cb) -> Question.distinct 'tournament', crit, (err, tournaments) -> cb null, { tournaments }),
+		((cb) -> Question.distinct 'year', crit, (err, years) -> cb null, { years }),
+		((cb) -> Question.distinct 'type', crit, (err, types) -> cb null, { types })
+	], (err, data) ->
+		fakecrit = _.omit(crit, 'question')
+		fakecrit.q = req.query.q if req.query.q
+		res.render 'search/search.jade', _.extend({ crit: fakecrit }, data...)
 
 
 app.get '/questions/:type/:category', (req, res) ->
@@ -270,7 +343,7 @@ app.get '/questions/:type/:category', (req, res) ->
 		.limit(10)
 		.exec (err, entries) -> cb null, {entries}
 	], (err, data) ->
-		res.render 'category.jade', _.extend({ type: req.params.type, cat: req.params.category }, data...)
+		res.render 'search/category.jade', _.extend({ type: req.params.type, cat: req.params.category }, data...)
 
 
 app.get "/packets/:type", (req, res) ->

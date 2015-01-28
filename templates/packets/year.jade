@@ -3,8 +3,8 @@ extends ../layout
 block content
 	h1 #{year} All Tournaments 
 		span.label.label-important #{type} 
-
-	a.btn(href="/new?type=#{type}&year=#{year}") Add New Packet
+	if session.email
+		a.btn.addnew(href="/new?type=#{type}&year=#{year}") Add New Packet
 	
 	p
 		each group in groups.sort(function(a, b){return a.difficulty > b.difficulty ? 1 : -1})

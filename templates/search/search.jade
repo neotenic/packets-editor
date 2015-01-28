@@ -1,0 +1,55 @@
+extends ../layout
+
+mixin filter(name, field, set)
+	div.well.sidebar-nav
+		ul.nav.nav-list
+			li.nav-header= name
+			if crit[field]
+				li.active
+					a(href='/search?' + querystring.stringify(_.omit(crit, field))) &times; #{crit[field]}
+			else
+				for x in set
+					li
+						a(href='/search?' + querystring.stringify(_.extend(_.object([field], [x]), crit)))= x
+
+
+block sidebar
+	mixin filter('Type', 'type', types)
+	mixin filter('Difficulty', 'difficulty', difficulties)
+	mixin filter('Category', 'category', categories)
+	mixin filter('Year', 'year', years)
+	mixin filter('Tournament', 'tournament', tournaments)
+
+block content
+	p(style="font-style: italic")
+		| Note: This search feature is intended only for curating the packets database.
+		| Also, as is most of this packet editor site, there isn't a lot of polish or functionality. 
+		| I haven't turned on MongoDB fulltext indices, so search is done through regular expressions
+		| rather than something more sane. 
+
+	style
+		.answer { font-weight: bold }
+		.highlight { background-color: #FFFF88; }
+
+	h4 Found #{count} results matching the specified query. 
+		if count > 20
+			| Showing first 20 results.
+
+	for question in entries
+		ol.breadcrumb
+			li= question.num
+			li.divider /
+			li= question.category
+			li.divider /
+			li= question.year
+			li.divider /
+			li= question.tournament
+			li.pull-right.answer= question.answer
+		
+		div.question.well= question.question
+
+	if typeof crit != 'undefined' && crit.q
+		script(src="/bootstrap/jquery.js")
+		script(src="/bootstrap/highlight.js")
+		script
+			jQuery(".question, .answer").highlight(!{JSON.stringify(crit.q)})
