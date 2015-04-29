@@ -43,6 +43,8 @@ question_schema = new mongoose.Schema {
 }
 
 Question = db.model 'Question', question_schema
+# db.reviews.ensureIndex( { comments: "text" } )
+
 
 report_schema = new mongoose.Schema {
 	type:             String, # for future support for different types of questions, e.g. certamen, jeopardy
@@ -89,6 +91,21 @@ Tournament = db.model 'Tournament', new mongoose.Schema {
 	links:            [String],
 	files:            [String],
 	name:             String
+}
+
+Pending = db.model 'Pending', new mongoose.Schema {
+	author:           String,
+	questions:        [{
+		answer: String,
+		question: String,
+		category: String,
+		num: Number
+	}],
+	type:             String,
+	tournament:       String,
+	packet:           String,
+	year:             Number,
+	added:            Date
 }
 
 
@@ -197,7 +214,7 @@ app.get '/review/:type', (req, res) ->
 	], (err, data) ->
 		res.render 'review.jade', _.extend({ review_page: true }, base, data...)
 
-app.get '/new', (req, res) ->
+app.get '/new', must_login, (req, res) ->
 	base = {
 		default_type: req.query.type,
 		default_year: req.query.year,
@@ -250,6 +267,40 @@ app.post '/categorize-packet', must_login, (req, res) ->
 	# mod.save()
 	# res.redirect '/mods'
 
+app.post '/upload-packet', must_login, (req, res) ->
+	j = JSON.parse(req.body.json)
+	pending = new Pending {
+		added: new Date,
+		tournament: j.tournament,
+		type: j.type,
+		year: j.year,
+		packet: j.packet,
+		author: req?.session?.email,
+		questions: j.questions
+	}
+	pending.save ->
+		res.redirect '/pending'
+	
+	
+app.get '/pending', (req, res) ->
+	base = {}
+	async.parallel [
+		(cb) -> Pending.find({}).exec (err, packets) -> cb null, { packets }
+	], (err, data) ->
+		res.render 'new/pending.jade', _.extend({}, base, data...)
+	
+#	for q in questions
+#		question = new Question {
+#			
+#		}
+#	{tournament, type, year, questions, packet} = JSON.parse(req.body.json)
+#	base = { tournament, type, year, questions, packet }
+#	async.parallel [
+#		(cb) -> Question.distinct 'category', { type }, (err, categories) -> cb null, { categories }
+#	], (err, data) ->
+#		res.render 'new/categorize.jade', _.extend({ cat_page: true }, base, data...)
+
+app.get '/categorize-packet', (req, res) -> res.redirect '/new'
 
 app.get '/logs', (req, res) ->
 	ModLog.find().sort(date: -1).exec (err, logs) ->

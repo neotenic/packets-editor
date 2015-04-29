@@ -1,11 +1,16 @@
 extends ../layout
 
 block content
-	h1 All Tournaments 
-		span.label.label-important #{type} 
-	hr
-	if session.email
-		a.btn.addnew(href="/new?type=#{type}") Add New Packet
+	ol.breadcrumb
+		li
+			a(href="/packets/"+type)= type
+		
+		if session.email
+			li.pull-right
+				a(href="/new?type=#{type}") Add New Packet
+		
+
+		
 	for d in clusters
 		h2= d.difficulty
 		p

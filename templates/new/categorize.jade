@@ -1,6 +1,9 @@
 extends ../layout
 
 block main
+	script(src="/bootstrap/jquery.js")
+	script(src="/bootstrap/elastic.js")
+	
 	style
 		.pastebox {
 			min-height: 400px;
@@ -49,19 +52,76 @@ block main
 			div.span12
 				h1 Step 2
 				h4 Categorize & Confirm
-
+				p
+					| <b>None of your progress is saved! </b>
+					| Until you categorize and submit the packet for review, none of this content
+					| is stored on the database and can not be retrieved or continued. You progress
+					| will be lost if you exit now.
+				br
 				for q in questions
-					ol.breadcrumb
-						li Question #{q.num}
-						li.pull-right.answer= q.answer
-					.well= q.question
+					.questionbox
+						ol.breadcrumb
+							li Question #{q.num}
+						.form-horizontal
+							input.basis(type="hidden", value=JSON.stringify(q))
+							.control-group
+								label.control-label Question
+								.controls
+									textarea.well(style="display: block; width: 100%;box-sizing: border-box")= q.question
+							.control-group
+								label.control-label Answer
+								.controls
+									input.answerbox(style="width:100%", type="text", value= q.answer)
+							
+							.control-group
+								label.control-label Category
+								.controls
+									select
+										option(disabled, selected) Uncategorized
+										for o in categories
+											option(value=o)= o
 
-				//- label Category
-				select
-					for o in categories
-						option(value=o)= o
 
 				hr
-				form.form(action="/categorize-packet", method="post")
+				form.form#revform(action="/upload-packet", method="post")
 					input#json(type="hidden", name="json")
-					button.btn.btn-large <b>Submit</b> for review
+					button.btn.btn-large#review(disabled=true) <b>Submit</b> for review
+
+				p
+					| Once you have submitted the packet for review, send an email to info@protobowl.com
+					| and I'll look over it.
+					
+	script
+		$(document).ready(function(){
+			autosize($('textarea.well'))
+			
+			$("select").change(function(){
+				if($('select').map(function(e){return $(this).val()}).toArray().some(function(e){return e == 'Uncategorized'})){
+					$("#review").attr('disabled', true)
+				}else{
+					$("#review").attr('disabled', false)
+				}
+			})	
+			
+			$("#revform").submit(function(){
+				
+				
+				var stuff = $('.questionbox').map(function(){
+					return $.extend(JSON.parse($(this).find('input.basis').val()), {
+						category: $(this).find('select').val(), 
+						question: $(this).find('.well').val(), 
+						answer: $(this).find('.answerbox').val()
+					})
+				}).toArray();
+				
+				$("#json").val(JSON.stringify({
+					packet: "#{packet}",
+					tournament: "#{tournament}", 
+					type: "#{type}", 
+					year: "#{year}",
+					questions: stuff
+				}));
+				
+				
+			})
+		})

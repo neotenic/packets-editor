@@ -1,0 +1,21 @@
+extends ../layout
+
+block main
+	.container
+		if session.email
+			a.btn.btn-large.pull-right(href="/new") Create New Packet
+		
+		h1 Pending Packets
+		p these are packets which have been submitted but have yet to be reviewed
+		
+		
+		
+		each packet in packets
+			div.well
+				div= "Type: " + packet.type
+				div= "Year: " + packet.year
+				div= "Packet: " + packet.packet
+				div= "Tournament: " + packet.tournament
+				div= "Questions: " + packet.questions.length
+				div= "Author: " + packet.author
+				div= "Added: " + packet.added

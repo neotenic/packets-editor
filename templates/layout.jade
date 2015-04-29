@@ -27,7 +27,7 @@ html(lang="en")
 		div.navbar.navbar-fixed-top.navbar-inverse
 			div.navbar-inner
 				div.container-fluid
-					a(href="/").brand protobowl <b>packets</b> editor
+					a(href="/").brand proto<b>pack</b> 
 					ul.nav
 						//- li
 						//- 	a(href="/tournaments") tournaments
@@ -38,13 +38,14 @@ html(lang="en")
 						li(class="#{typeof review_page != 'undefined' && 'active'}")
 							a(href="/review") reports
 						
-						//- li
-						//- 	a(href="/new") new
+						
 						li(class="#{typeof logs != 'undefined' && 'active'}")
 							a(href="/logs") logs
 						if session.email
 							li(class="#{typeof mods != 'undefined' && 'active'}")
 								a(href="/mods") mods
+							li
+								a(href="/pending") pending
 						
 						form.navbar-search.pull-left(action="/search", method="get")
 							if typeof crit != 'undefined' && crit.q
@@ -90,3 +91,4 @@ html(lang="en")
 
 		script(src="https://login.persona.org/include.js")
 		script(src="/bootstrap/persona.js")
+		script(src="/bootstrap/autosize.js")

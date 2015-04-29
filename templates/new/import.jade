@@ -12,6 +12,7 @@ block main
 			width: 100%;
 			resize: vertical; 
 			white-space:pre;
+			word-wrap: break-word;
 			font-size: larger;
 			line-height: 1.5
 		}
@@ -119,7 +120,9 @@ block main
 						fieldset
 							.control-group
 								.controls
-									button.btn.btn-large <b>Continue</b> to Step 2
-
+									button#submit.btn.btn-large(disabled) <b>Continue</b> to Step 2
+					
+					div.alert.alert-danger#wumbo
+						| Please check that you've filled out all fields of the form and that the packet contains more than 5 questions.
 
 				div#preview(style="top: 0; position: relative")

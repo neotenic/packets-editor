@@ -20,6 +20,7 @@ block sidebar
 	mixin filter('Year', 'year', years)
 	mixin filter('Tournament', 'tournament', tournaments)
 
+
 block content
 	p(style="font-style: italic")
 		| Note: This search feature is intended only for curating the packets database.
@@ -37,13 +38,28 @@ block content
 
 	for question in entries
 		ol.breadcrumb
-			li= question.num
-			li.divider /
+			li
+				a(href='/packets/' + question.type)=question.type
+				span.divider /
+			
+			li
+				a(href='/packets/' + question.type + '/' + question.year)=question.year
+				span.divider /
+				
+			li
+				a(href='/packets/' + question.type + '/' + question.year + '/' + question.tournament)=question.tournament
+				span.divider /
+			
+			li
+				a(href='/packets/' + question.type + '/' + question.year + '/' + question.tournament + '/' + question.round)= question.round
+				span.divider /
+				
 			li= question.category
-			li.divider /
-			li= question.year
-			li.divider /
-			li= question.tournament
+				span.divider /
+			
+			li= question.num
+				span.divider
+			
 			li.pull-right.answer= question.answer
 		
 		div.question.well= question.question
@@ -53,3 +69,12 @@ block content
 		script(src="/bootstrap/highlight.js")
 		script
 			jQuery(".question, .answer").highlight(!{JSON.stringify(crit.q)})
+
+
+block main
+	div.container-fluid
+		div.row-fluid
+			div.span3
+				block sidebar
+			div.span9
+				block content

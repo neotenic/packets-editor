@@ -1,11 +1,17 @@
 extends ../layout
 
 block content
-	h1 #{year} All Tournaments 
-		span.label.label-important #{type} 
-	if session.email
-		a.btn.addnew(href="/new?type=#{type}&year=#{year}") Add New Packet
-	
+	ol.breadcrumb
+		li
+			a(href="/packets/"+type)= type
+			span.divider /
+		li
+			a(href="/packets/"+type+"/"+year)= year
+		
+		if session.email
+			li.pull-right
+				a(href="/new?type=#{type}&year=#{year}") Add New Packet
+		
 	p
 		each group in groups.sort(function(a, b){return a.difficulty > b.difficulty ? 1 : -1})
 			h3 #{group.difficulty}
